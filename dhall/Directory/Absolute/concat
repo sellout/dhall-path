@@ -1,0 +1,56 @@
+let AbsoluteDirectory = ./Type
+
+let AbsolutePath = ../../Path/Absolute/Type
+
+let RelativePath = ../../Path/Relative/Type
+
+let Typ = ../../Path/Typ
+
+let concat =
+      λ(parent : AbsoluteDirectory) →
+      λ(type : Typ) →
+      λ(child : RelativePath type) →
+        let remaining =
+              List/fold
+                Text
+                parent.directories
+                { directories : List Text, parents : Natural }
+                ( λ(directory : Text) →
+                  λ ( remaining
+                    : { directories : List Text, parents : Natural }
+                    ) →
+                    if    Natural/isZero remaining.parents
+                    then  { directories = [ directory ] # remaining.directories
+                          , parents = remaining.parents
+                          }
+                    else  { directories = remaining.directories
+                          , parents = Natural/subtract 1 remaining.parents
+                          }
+                )
+                { directories = [] : List Text, parents = child.parents }
+
+        in  if    Natural/isZero remaining.parents
+            then  Some
+                    { directories = remaining.directories # child.directories
+                    , file = child.file
+                    , parents = {=}
+                    }
+            else  None (AbsolutePath type)
+
+let example0 =
+        assert
+      :   concat
+            { directories = [ "boo", "bash" ], file = {=}, parents = {=} }
+            Typ.Dir
+            { directories = [ "mep", "moo" ], file = {=}, parents = 2 }
+        ≡ Some { directories = [ "mep", "moo" ], file = {=}, parents = {=} }
+
+let example1 =
+        assert
+      :   concat
+            { directories = [ "boo", "bash" ], file = {=}, parents = {=} }
+            Typ.Dir
+            { directories = [ "mep", "moo" ], file = {=}, parents = 3 }
+        ≡ None (AbsolutePath Typ.Dir)
+
+in  concat

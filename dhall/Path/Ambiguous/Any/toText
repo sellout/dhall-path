@@ -1,0 +1,86 @@
+{-|
+
+- `Path/toText` Serializes to a Nix path, E.g., { relativity = Some 1, components = ["foo", "bar"]} becomes "../foo/bar". We don’t distinguish between directories and files (because Nix doesn’t – it will either load a file with the name, or look for <path>/default.nix. Of course, you can’t concat paths if the left one is a file, but we won’t worry about that for now.
+
+The serialized path is normalized (as `Path` itself is always normalized), but
+there is never any trailing `/` as we don’t know whether we have a file or not.
+
+**TODO**: Should we include “./” at the beginning of non-reparented relative
+paths, or just “”? The latter fits the pattern better, but “./” is more
+explicit, and its omission _could_ be used as an ambiguity signifier, like the
+lack of “/” at the end.
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let Path/Ambiguous/Any = ./Type
+
+let Format = ../../Format/Type
+
+let Substitution = ../../Format/Substitution
+
+let toText =
+      λ(format : Format) →
+      λ(path : Path/Ambiguous/Any) →
+        let escapeComponent =
+              λ(component : Text) →
+                List/fold
+                  Substitution
+                  format.substitutions
+                  Text
+                  ( λ(substitution : Substitution) →
+                      Text/replace substitution.content substitution.replacement
+                  )
+                  component
+
+        let prefix =
+              merge
+                { None = format.root
+                , Some =
+                    λ(parents : Natural) →
+                      merge
+                        { None = "", Some = P.Function.identity Text }
+                        ( Natural/fold
+                            parents
+                            (Optional Text)
+                            ( λ(tail : Optional Text) →
+                                Some
+                                  ( merge
+                                      { None = format.reparent
+                                      , Some =
+                                          λ(prev : Text) →
+                                            format.reparent ++ prev
+                                      }
+                                      tail
+                                  )
+                            )
+                            (None Text)
+                        )
+                }
+                path.parents
+
+        let directory =
+              List/fold
+                Text
+                path.directories
+                Text
+                ( λ(directoryName : Text) →
+                  λ(pathStr : Text) →
+                    pathStr ++ escapeComponent directoryName ++ format.separator
+                )
+                ""
+
+        in  prefix ++ directory ++ escapeComponent path.component
+
+let ex0 =
+        assert
+      :   toText
+            ../../Format/POSIX
+            { parents = None Natural
+            , directories = [] : List Text
+            , component = "etc"
+            }
+        ≡ "/etc"
+
+in  toText

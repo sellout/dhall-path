@@ -1,0 +1,7 @@
+let Anc = ../Anc
+
+in  λ(anchor : Anc) →
+      { parents : merge { Abs = {}, Rel = Natural } anchor
+      , directories : List Text
+      , component : Text
+      }

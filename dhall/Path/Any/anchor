@@ -1,0 +1,52 @@
+{-|
+Discover the dependent type of a `Path`.
+-}
+let Path/Any = ./Type
+
+let Path = ../Type
+
+let Anc = ../Anc
+
+let Typ = ../Typ
+
+let Anchored =
+      < AbsDir : Path Anc.Abs Typ.Dir
+      | AbsFile : Path Anc.Abs Typ.File
+      | RelDir : Path Anc.Rel Typ.Dir
+      | RelFile : Path Anc.Rel Typ.File
+      >
+
+let anchor =
+      λ(path : Path/Any) →
+        merge
+          { None =
+              merge
+                { None =
+                    Anchored.AbsDir
+                      { parents = {=}
+                      , directories = path.directories
+                      , file = {=}
+                      }
+                , Some =
+                    λ(file : Text) →
+                      Anchored.AbsFile
+                        { parents = {=}, directories = path.directories, file }
+                }
+                path.file
+          , Some =
+              λ(parents : Natural) →
+                merge
+                  { None =
+                      Anchored.RelDir
+                        { parents, directories = path.directories, file = {=} }
+                  , Some =
+                      λ(file : Text) →
+                        Anchored.RelFile
+                          { parents, directories = path.directories, file }
+                  }
+                  path.file
+          }
+          path.parents
+        : Anchored
+
+in  anchor

@@ -1,0 +1,4 @@
+{-|
+Whether an `AnchoredPath` is absolute or relative.
+-}
+< Abs | Rel >

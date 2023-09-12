@@ -1,0 +1,4 @@
+{-|
+The current directory.
+-}
+{ directories = [] : List Text, file = {=}, parents = 0 }

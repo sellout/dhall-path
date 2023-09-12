@@ -1,0 +1,10 @@
+let Anc = ./Anc
+
+let Typ = ./Typ
+
+in  λ(anchor : Anc) →
+    λ(type : Typ) →
+      { directories : List Text
+      , file : merge { Dir = {}, File = Text } type
+      , parents : merge { Abs = {}, Rel = Natural } anchor
+      }

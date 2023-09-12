@@ -1,0 +1,8 @@
+{-|
+Returns the name of the file, _not_ as a `Path`.
+-}
+let Anc = ../Path/Anc
+
+let File = ./Type
+
+in  λ(anchor : Anc) → λ(file : File anchor) → file.file

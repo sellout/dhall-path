@@ -1,0 +1,8 @@
+{-|
+A path where we don’t know whether or not it’s a file.
+
+If there are no components, then we know it must be a directory, so there must
+be at least a single component of unknown type, and anything prior to that is a
+directory component.
+-}
+{ parents : Optional Natural, directories : List Text, component : Text }

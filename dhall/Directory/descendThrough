@@ -1,0 +1,11 @@
+let Anc = ../Path/Anc
+
+let Directory = ./Type
+
+in  λ(anchor : Anc) →
+    λ(directory : Directory anchor) →
+    λ(newDirComponents : List Text) →
+        directory
+      ⫽ { directories =
+            directory.directories # List/reverse Text newDirComponents
+        }

@@ -1,0 +1,10 @@
+{-|
+Returns the directory containing the file, as a `Directory`.
+-}
+let Anc = ../Path/Anc
+
+let File = ./Type
+
+in  λ(anchor : Anc) →
+    λ(file : File anchor) →
+      { parents = file.parents, directories = file.directories, file = {=} }

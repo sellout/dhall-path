@@ -1,0 +1,34 @@
+{-|
+Moves up one level in the directory tree.
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let ascend =
+      λ(directory : ./Type) →
+        if    P.List.null Text directory.directories
+        then  directory ⫽ { parents = directory.parents + 1 }
+        else    directory
+              ⫽ { directories = P.List.drop 1 Text directory.directories }
+
+let movesUpOneLevel =
+        assert
+      :   ascend { directories = [ "two", "one" ], file = {=}, parents = 0 }
+        ≡ { directories = [ "one" ], file = {=}, parents = 0 }
+
+let canArriveAtCurrentDirectory =
+        assert
+      : ascend { directories = [ "one" ], file = {=}, parents = 0 } ≡ ../current
+
+let canIntroduceReparenting =
+        assert
+      :   ascend { directories = [] : List Text, file = {=}, parents = 0 }
+        ≡ { directories = [] : List Text, file = {=}, parents = 1 }
+
+let canExtendReparenting =
+        assert
+      :   ascend { directories = [] : List Text, file = {=}, parents = 2 }
+        ≡ { directories = [] : List Text, file = {=}, parents = 3 }
+
+in  ascend

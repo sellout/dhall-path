@@ -1,0 +1,7 @@
+let Directory = ./Type
+
+let Format = ../../Path/Format/Type
+
+in  λ(format : Format) →
+    λ(directory : Directory) →
+      ../../Path/Any/toText format (./unanchor directory)

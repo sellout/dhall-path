@@ -1,0 +1,26 @@
+let Path/Ambiguous/Any = ./Type
+
+let Path/Ambiguous/Absolute = ../Absolute/Type
+
+let Path/Ambiguous/Relative = ../Relative/Type
+
+let Anchored = < Abs : Path/Ambiguous/Absolute | Rel : Path/Ambiguous/Relative >
+
+in  λ(path : Path/Ambiguous/Any) →
+      merge
+        { None =
+            Anchored.Abs
+              { parents = {=}
+              , directories = path.directories
+              , component = path.component
+              }
+        , Some =
+            λ(parents : Natural) →
+              Anchored.Rel
+                { parents
+                , directories = path.directories
+                , component = path.component
+                }
+        }
+        path.parents
+      : Anchored

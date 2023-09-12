@@ -1,0 +1,14 @@
+{-|
+This type is used by toText to determine how we serialize a path.
+-}
+let Substitution = ./Substitution
+
+in  { root : Text
+    , separator : Text
+    , --| This must include the separator if you expect it to appear.
+      reparent : Text
+    , --| Substitions are applied in order, so ensure that earlier ones don’t
+      --  introduce sequences that will be matched by later ones (unless you
+      --  mean to).
+      substitutions : List Substitution
+    }

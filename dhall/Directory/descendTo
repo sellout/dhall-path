@@ -1,0 +1,8 @@
+let Anc = ../Path/Anc
+
+let Directory = ./Type
+
+in  λ(anchor : Anc) →
+    λ(directory : Directory anchor) →
+    λ(newDirComponent : Text) →
+      ./descendThrough anchor directory [ newDirComponent ]

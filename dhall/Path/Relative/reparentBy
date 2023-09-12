@@ -1,0 +1,8 @@
+let Path/Relative = ./Type
+
+let Typ = ../Typ
+
+in  λ(type : Typ) →
+    λ(path : Path/Relative type) →
+    λ(levels : Natural) →
+      path ⫽ { parents = path.parents + levels }

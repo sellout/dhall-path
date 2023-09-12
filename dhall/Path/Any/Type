@@ -1,0 +1,6 @@
+{-|
+This is a type where we don’t know (at the type level) whether it’s anchored, or
+whether it’s a file. `parents` is `None` for an absolute path and otherwise
+contains the number of leading `../` parents that should be produced.
+-}
+{ parents : Optional Natural, directories : List Text, file : Optional Text }

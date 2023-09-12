@@ -1,0 +1,13 @@
+{-|
+This is like a combination of `Directory/ascend` and `File/directory`, where it
+finds the path that directly contains the current one, regardless of whether
+it’s a file or directory.
+-}
+let Directory = ../../Directory/Type
+
+let Anc = ../Anc
+
+in  λ(anchor : Anc) →
+    λ(path : ./Type anchor) →
+        { parents = path.parents, directories = path.directories, file = {=} }
+      : Directory anchor

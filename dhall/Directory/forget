@@ -1,0 +1,31 @@
+{-|
+Forget whether the path is a file or directory. To be used for interfaces that
+expect ambiguous paths.
+
+Some directories are unforgettable – if they have no explicit components, then
+there is nothing ambiguous about it. E.g., "/" and "../../" are unambiguously
+directories.
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let Directory = ./Type
+
+let Anc = ../Path/Anc
+
+let Path/Ambiguous = ../Path/Ambiguous/Type
+
+in  λ(anchor : Anc) →
+    λ(path : Directory anchor) →
+        P.Optional.map
+          Text
+          (Path/Ambiguous anchor)
+          ( λ(component : Text) →
+              { parents = path.parents
+              , directories = P.List.drop 1 Text path.directories
+              , component
+              }
+          )
+          (List/head Text path.directories)
+      : Optional (Path/Ambiguous anchor)

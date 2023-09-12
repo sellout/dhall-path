@@ -1,0 +1,4 @@
+{-|
+Whether an `AnchoredPath` is a directory or a file.
+-}
+< Dir | File >

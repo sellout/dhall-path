@@ -1,0 +1,59 @@
+let Anc = ../Path/Anc
+
+let Directory = ./Type
+
+let File = ../File/Type
+
+let selectFile =
+      λ(anchor : Anc) →
+      λ(directory : Directory anchor) →
+      λ(fileName : Text) →
+          { directories = directory.directories
+          , file = fileName
+          , parents = directory.parents
+          }
+        : File anchor
+
+let ex0 =
+        assert
+      :   selectFile
+            Anc.Abs
+            { parents = {=}, directories = [ "bar", "foo" ], file = {=} }
+            "baz.txt"
+        ≡ { parents = {=}, directories = [ "bar", "foo" ], file = "baz.txt" }
+
+let ex1 =
+        assert
+      :   selectFile Anc.Abs ./root "baz.txt"
+        ≡ { parents = {=}, directories = [] : List Text, file = "baz.txt" }
+
+let ex2 =
+        assert
+      :   selectFile
+            Anc.Rel
+            { parents = 0, directories = [ "bar", "foo" ], file = {=} }
+            "baz.txt"
+        ≡ { parents = 0, directories = [ "bar", "foo" ], file = "baz.txt" }
+
+let ex3 =
+        assert
+      :   selectFile Anc.Rel ./current "baz.txt"
+        ≡ { parents = 0, directories = [] : List Text, file = "baz.txt" }
+
+let ex4 =
+        assert
+      :   selectFile
+            Anc.Rel
+            { parents = 4, directories = [ "bar", "foo" ], file = {=} }
+            "baz.txt"
+        ≡ { parents = 4, directories = [ "bar", "foo" ], file = "baz.txt" }
+
+let ex5 =
+        assert
+      :   selectFile
+            Anc.Rel
+            { parents = 4, directories = [] : List Text, file = {=} }
+            "baz.txt"
+        ≡ { parents = 4, directories = [] : List Text, file = "baz.txt" }
+
+in  selectFile

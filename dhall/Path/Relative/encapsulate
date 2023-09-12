@@ -1,0 +1,56 @@
+{-|
+Rewrites a relative path “chroot-style” – it accepts a sandboxing “base” path,
+where `/` represents the boundary of the sandbox, and any subdirectories
+represent the point from which relative paths are calculated.
+
+E.g., if you have a system like
+
+/var/local/my-app/extensions
+- config
+- plugins/<many individual plugins>
+
+and user-written Dhall plugins are allow to access things like config within the
+extension directory, you might use something like `encapsulate
+"/plugins/<this-plugin-name>"`, allowing results up to `../../config/whatever`
+to work, while `../related-plugin/` would acces some other plugin and
+`../../../../emacs/` would return `None`, because it tries to escape the system.
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let AbsoluteDirectory = ../../Directory/Absolute/Type
+
+let Typ = ../Typ
+
+let RelativePath = ./Type
+
+let AbsolutePath = ../Absolute/Type
+
+let concat = ../../Directory/Absolute/concat
+
+let route = ../../Path/Absolute/route
+
+let encapsulate =
+      λ(base : AbsoluteDirectory) →
+      λ(type : Typ) →
+      λ(path : RelativePath type) →
+          P.Optional.map
+            (AbsolutePath type)
+            (RelativePath type)
+            (route base type)
+            (concat base type path)
+        : Optional (RelativePath type)
+
+let ex0 =
+        assert
+      :   encapsulate
+            { parents = {=}
+            , directories = [ "my-plugin", "plugins" ]
+            , file = {=}
+            }
+            Typ.File
+            { parents = 2, directories = [ "config" ], file = "whatever" }
+        ≡ Some { parents = 2, directories = [ "config" ], file = "whatever" }
+
+in  encapsulate

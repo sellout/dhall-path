@@ -1,0 +1,17 @@
+{-|
+Forget whether the path is a file or directory. To be used for interfaces that
+expect ambiguous paths.
+-}
+let File = ./Type
+
+let Anc = ../Path/Anc
+
+let Path/Ambiguous = ../Path/Ambiguous/Type
+
+in  λ(anchor : Anc) →
+    λ(path : File anchor) →
+        { parents = path.parents
+        , directories = path.directories
+        , component = path.file
+        }
+      : Path/Ambiguous anchor

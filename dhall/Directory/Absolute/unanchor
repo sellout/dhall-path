@@ -1,0 +1,10 @@
+let Path/Any = ../../Path/Any/Type
+
+let AbsoluteDirectory = ./Type
+
+in  λ(absoluteDir : AbsoluteDirectory) →
+        { parents = None Natural
+        , directories = absoluteDir.directories
+        , file = None Text
+        }
+      : Path/Any

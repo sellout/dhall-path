@@ -1,0 +1,152 @@
+{-|
+- `Path/toText` Serializes to a Nix path, E.g., { parents = Some 1, directories = ["foo"], file = "bar" } becomes "../foo/bar". We don’t distinguish between directories and files (because Nix doesn’t – it will either load a file with the name, or look for <path>/default.nix. Of course, you can’t concat paths if the left one is a file, but we won’t worry about that for now.
+
+The serialized path is normalized (as `Path` itself is always normalized), but
+there is never any trailing `/` as we don’t know whether we have a file or not.
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let Path = ./Type
+
+let Format = ../Format/Type
+
+let Substitution = ../Format/Substitution
+
+let toText =
+      λ(format : Format) →
+      λ(path : Path) →
+        let escapeComponent =
+              λ(component : Text) →
+                List/fold
+                  Substitution
+                  format.substitutions
+                  Text
+                  ( λ(substitution : Substitution) →
+                      Text/replace substitution.content substitution.replacement
+                  )
+                  component
+
+        let prefix =
+              merge
+                { None = format.root
+                , Some =
+                    λ(parents : Natural) →
+                      merge
+                        { None = "", Some = P.Function.identity Text }
+                        ( Natural/fold
+                            parents
+                            (Optional Text)
+                            ( λ(tail : Optional Text) →
+                                Some
+                                  ( merge
+                                      { None = format.reparent
+                                      , Some =
+                                          λ(prev : Text) →
+                                            format.reparent ++ prev
+                                      }
+                                      tail
+                                  )
+                            )
+                            (None Text)
+                        )
+                }
+                path.parents
+
+        let directory =
+              List/fold
+                Text
+                path.directories
+                Text
+                ( λ(directoryName : Text) →
+                  λ(pathStr : Text) →
+                    pathStr ++ escapeComponent directoryName ++ format.separator
+                )
+                ""
+
+        let file = merge { None = "", Some = escapeComponent } path.file
+
+        in  prefix ++ directory ++ file
+
+let example0 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 0
+            , directories = [ "meh", "moo" ]
+            , file = None Text
+            }
+        ≡ "moo/meh/"
+
+let example1 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 1
+            , directories = [ "beh", "boo" ]
+            , file = None Text
+            }
+        ≡ "../boo/beh/"
+
+let example2 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 3
+            , directories = [ "beh", "boo" ]
+            , file = None Text
+            }
+        ≡ "../../../boo/beh/"
+
+let example3 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 0
+            , directories = [ "meh", "beh", "boo" ]
+            , file = None Text
+            }
+        ≡ "boo/beh/meh/"
+
+let example4 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = None Natural
+            , directories = [ "meh", "moo", "maz" ]
+            , file = None Text
+            }
+        ≡ "/maz/moo/meh/"
+
+let example5 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = None Natural
+            , directories = [ "meh", "moo", "maz" ]
+            , file = Some "mep"
+            }
+        ≡ "/maz/moo/meh/mep"
+
+let example6 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 5
+            , directories = [ "meh", "moo", "maz" ]
+            , file = Some "mep"
+            }
+        ≡ "../../../../../maz/moo/meh/mep"
+
+let example7 =
+        assert
+      :   toText
+            ../Format/POSIX
+            { parents = Some 0
+            , directories = [ "meh", "moo", "maz" ]
+            , file = Some "mep"
+            }
+        ≡ "maz/moo/meh/mep"
+
+in  toText

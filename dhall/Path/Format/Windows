@@ -1,0 +1,28 @@
+{-|
+A rough attempt at Windows path support. This takes an optional device name. And
+don’t forget that “\” is an escape character in Dhall, so you have to type twice
+as many as you want. Common device names are like “C:” or “\\.”, or even
+“\\?\C:” (and don’t forget that you have to type “\\\\?\\C:” for that last one.
+
+Windows doesn’t need a device name – even with absolute paths, it defaults to
+the current device. And `toText` isn’t the ideal place for devices, but it’s
+outside the scope of this library, so it’s a placeholder until a library exists
+around this one that handles more context around paths (like devices and URLs).
+-}
+let P =
+      https://prelude.dhall-lang.org/v20.1.0/package.dhall
+        sha256:26b0ef498663d269e4dc6a82b0ee289ec565d683ef4c00d0ebdd25333a5a3c98
+
+let Format = ./Type
+
+in  \(device : Optional Text) ->
+        { root =
+            merge { None = "", Some = P.Function.identity Text } device ++ "\\"
+        , separator = "\\"
+        , --| This must include the separator if you expect it to appear.
+          reparent = "..\\"
+        , --| I don’t think this is right.
+          substitutions =
+          [ { content = "\\", replacement = "\\\\" } ]
+        }
+      : Format

@@ -1,0 +1,5 @@
+let Path = ./Type
+
+let Format = ../../Format/Type
+
+in  λ(format : Format) → λ(path : Path) → ../Any/toText format (./unanchor path)

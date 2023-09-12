@@ -1,0 +1,85 @@
+{-|
+Calculates the relative path to move from one point in the file system to
+another.
+
+Constraints:
+- it’s only possible to route between two relative paths where the `from` path
+  doesn’t have more `../` than the `to`, or between two absolute paths
+
+Examples:
+0. route ./meh/moo ../beh/boo ≡ ../../../beh/boo
+1. route ../meh/moo ../../beh/boo ≡ ../../../beh/boo
+2. route ./meh/moo ./meh/beh/boo ≡ ../beh/boo – **TODO**: Minimize the path when
+   relativity is equal and there is a common component prefix.
+3. route ./meh/moo ../meh/beh/boo ≡ ../../../meh/beh/boo
+4. route /meh/moo/maz /beh/boo ≡ ../../../beh/boo
+5. route /meh/moo/maz ../beh/boo ≡ Left RouteFromAbsToRel
+6. route ./meh/moo/maz /beh/boo ≡ Left RouteFromRelToAbs
+7. route ../../meh/moo/maz ../beh/boo ≡ Left FromTooFarUp
+-}
+let Typ = ../Typ
+
+let RelativePath = ../Relative/Type
+
+let RelativeDirectory = ../../Directory/Relative/Type
+
+let route =
+      λ(from : RelativeDirectory) →
+      λ(type : Typ) →
+      λ(to : RelativePath type) →
+          ( if    Natural/isZero (Natural/subtract to.parents from.parents)
+            then  Some
+                    { parents =
+                        Natural/subtract
+                          from.parents
+                          (List/length Text from.directories + to.parents)
+                    , directories = to.directories
+                    , file = to.file
+                    }
+            else  None (RelativePath type)
+          )
+        : Optional (RelativePath type)
+
+let example0 =
+        assert
+      :   route
+            { parents = 0, directories = [ "meh", "moo" ], file = {=} }
+            Typ.Dir
+            { parents = 1, directories = [ "beh", "boo" ], file = {=} }
+        ≡ Some { parents = 3, directories = [ "beh", "boo" ], file = {=} }
+
+let example1 =
+        assert
+      :   route
+            { parents = 1, directories = [ "meh", "moo" ], file = {=} }
+            Typ.Dir
+            { parents = 2, directories = [ "beh", "boo" ], file = {=} }
+        ≡ Some { parents = 3, directories = [ "beh", "boo" ], file = {=} }
+
+let example2 =
+        assert
+      :   route
+            { parents = 0, directories = [ "meh", "moo" ], file = {=} }
+            Typ.Dir
+            { parents = 0, directories = [ "meh", "beh", "boo" ], file = {=} }
+        ≡ Some
+            { parents = 2, directories = [ "meh", "beh", "boo" ], file = {=} }
+
+let example3 =
+        assert
+      :   route
+            { parents = 0, directories = [ "meh", "moo" ], file = {=} }
+            Typ.Dir
+            { parents = 1, directories = [ "meh", "beh", "boo" ], file = {=} }
+        ≡ Some
+            { parents = 3, directories = [ "meh", "beh", "boo" ], file = {=} }
+
+let example7 =
+        assert
+      :   route
+            { parents = 2, directories = [ "meh", "moo", "maz" ], file = {=} }
+            Typ.Dir
+            { parents = 1, directories = [ "beh", "boo" ], file = {=} }
+        ≡ None RelativeDirectory
+
+in  route

@@ -1,0 +1,38 @@
+{-|
+Calculates the relative path to move from one point in the file system to
+another.
+
+Constraints:
+- it’s only possible to route between two relative paths where the `from` path
+  doesn’t have more `../` than the `to`, or between two absolute paths
+
+Examples:
+0. route ./meh/moo ../beh/boo ≡ ../../../beh/boo
+1. route ../meh/moo ../../beh/boo ≡ ../../../beh/boo
+2. route ./meh/moo ./meh/beh/boo ≡ ../beh/boo – **TODO**: Minimize the path when
+   relativity is equal and there is a common component prefix.
+3. route ./meh/moo ../meh/beh/boo ≡ ../../../meh/beh/boo
+4. route /meh/moo/maz /beh/boo ≡ ../../../beh/boo
+5. route /meh/moo/maz ../beh/boo ≡ Left RouteFromAbsToRel
+6. route ./meh/moo/maz /beh/boo ≡ Left RouteFromRelToAbs
+7. route ../../meh/moo/maz ../beh/boo ≡ Left FromTooFarUp
+-}
+let Typ = ../Typ
+
+let AbsolutePath = ./Type
+
+let RelativePath = ../Relative/Type
+
+let AbsoluteDirectory = ../../Directory/Absolute/Type
+
+let route =
+      λ(from : AbsoluteDirectory) →
+      λ(type : Typ) →
+      λ(to : AbsolutePath type) →
+          { parents = List/length Text from.directories
+          , directories = to.directories
+          , file = to.file
+          }
+        : RelativePath type
+
+in  route

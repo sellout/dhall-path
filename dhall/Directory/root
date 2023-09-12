@@ -1,0 +1,4 @@
+{-|
+The root directory of a file system.
+-}
+{ directories = [] : List Text, file = {=}, parents = {=} }

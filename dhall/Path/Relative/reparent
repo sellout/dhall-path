@@ -1,0 +1,7 @@
+let Path/Relative = ./Type
+
+let Typ = ../Typ
+
+in  λ(type : Typ) →
+    λ(path : Path/Relative type) →
+      path ⫽ { parents = path.parents + 1 }

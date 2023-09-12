@@ -1,0 +1,10 @@
+{
+  "project": {
+    "description": "A path library for Dhall, with various type-level guarantees.",
+    "name":"dhall-path",
+    "repo":"sellout/dhall-path",
+    "summary":"Home Manager, but for repos.",
+    "version":"0.1.0"
+  },
+  "type":{"name":"dhall"}
+}

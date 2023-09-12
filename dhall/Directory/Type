@@ -1,0 +1,7 @@
+let Anc = ../Path/Anc
+
+let Typ = ../Path/Typ
+
+let Path = ../Path/Type
+
+in  λ(anchor : Anc) → Path anchor Typ.Dir
