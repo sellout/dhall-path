@@ -1,4 +1,7 @@
 {-|
 The root directory of a file system.
 -}
-{ directories = [] : List Text, file = {=}, parents = {=} }
+let Directory/Absolute = ./Absolute/Type
+
+in    { directories = [] : List Text, file = {=}, parents = {=} }
+    : Directory/Absolute

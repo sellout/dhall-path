@@ -4,9 +4,16 @@
 
 Well-typed path manipulation for Dhall
 
-This library offers two primary path representations
-- `Path` and
-- `Path/Ambiguous`.
+```dhall
+  let emacsDir =
+        Dir.descendThrough Anchor.Abs Dir.root [ "usr", "share", "emacs" ]
+  in  Dir.Absolute.toText Path.Format.POSIX emacsDir
+≡ "/usr/share/emacs/"
+```
+
+This library offers two primary path types
+- `Path < Abs | Rel > < Dir | File >` and
+- `Path/Ambiguous < Abs | Rel >`.
 
 `Path` takes two type parameters, one indicating whether the path is absolute or relative (`Path/Anc`) and one indicating whether it is a file or directory (`Path/Typ`). The latter only takes the `Path/Anc` parameter. Ambiguous paths can’t know whether they represent a file or directory. However, some operations (like `containing`) can bridge to non-ambiguous paths (since we know that regardless of what an ambiguous path represents, its containing path _must_ be a directory).
 
@@ -20,7 +27,7 @@ The stronger types of `Path` and `Path/Ambiguous` can always be recovered from t
 
 There are also aliases for full and partial applications of `Path/Anchored`. Operations are defined for the most specific types possible, e.g., `Directory/Absolute/isRoot`, not `Directory/isRoot` or `Path/isRoot`. In some cases (like `isRoot`), this is because the function is undecidable in other cases. Without access to the file system, we can’t determine whether “../../../” is the root directory or not.
 
-This type DAG not only shows all the aliases, but lists some operations (the labled, dotted edges) that move between otherwise unconnected types. This is not a full diagram of the operations on paths, or even the subset of unary operations.
+This type DAG[^1] not only shows all the aliases, but lists some operations (the labled, dotted edges) that move between otherwise unconnected types. This is not a full diagram of the operations on paths, or even the subset of unary operations.
 ```mermaid
 graph RL
   Directory & File --> Path
@@ -38,46 +45,15 @@ graph RL
   File -. directory .-> Directory
   Path -. forget .-> Path/Ambiguous
 ```
+[^1]: Mermaid is bad at drawing graphs, but Graphviz doesn’t render in READMEs, so this is what you get.
 
 The only failure cases in this library is when some relative path has too much re-parenting (“../”) relative to some other path such that the operation is impossible. This is represented by a `None` result.
 
 ## abstract API
 
-These is a rough set of available operations. The actual implementations may be duplicated on multiple more specific types. This splits out the cases that have distinct result types (usually because one may fail).
+API docs are on [GitHub Pages](https://sellout.github.io/dhall-path).
 
-- `anchor` – realize the types in the path
-  - `Path/anchor: Path → < AbsDir : Directory/Absolute | AbsFile : File/Absolute | RelDir : Directory/Relative | RelFile : File/Relative >`
-  - `Path/Ambiguous/anchor: Path/Ambiguous → < Abs : Path/Absolute/Ambiguous | Rel : Path/Relative/Ambiguous >`
-- `ascend` – move up one level in the file hierarchy
-  - `Directory/Absolute/ascend : Directory/Absolute → Optional (Directory/Absolute)`
-  - `Directory/Relative/ascend : Directory/Relative → Directory/Relative`
-- `basename : File anchor → Text` – get the name of the file referred to by the path
-- `concat` – resolve a path relative to another one
-  - `Directory/Absolute/concat : Directory anchor → Path/Relative type → Optional (Path/Anchored anchor type)`
-  - `Directory/Relative/concat : Directory anchor → Path/Relative type → Path/Anchored anchor type`
-- `containing : Path/Ambiguous anchor → Directory anchor` – find the containing directory for an ambiguous path
-  - `Directory/Relative/ascend : Directory/Relative → Directory/Relative`
-- `current : Directory/Relative` – the current directory, the starting point for building relative paths
-- `descendThrough : Directory anchor → List Text → Directory anchor` – move multiple directories deeper in the file system
-- `descendTo : Directory anchor → Text → Directory anchor` – like `descendThrough`, but for a single directory
-- `directory : File anchor → Directory anchor` – find the directory containing the file
-- `encapsulate : Directory/Absolute → Path/Relative type → Optional (Path/Relative type)` – sandboxes paths
-- `forget` – forget whether a path is a file or a directory (making a path an ambiguous path)
-  - `Directory/forget : Directory anchor → Optional (Path/Anchored/Ambiguous anchor)`
-  - `File/forget : File anchor → Path/Anchored/Ambiguous anchor`
-- `isCurrent` - identify whether the directory is the current directory
-- `isRoot` - identify whether the directory is the root directory
-- `reparent : Path[/Ambiguous]/Relative type → Path[/Ambiguous]/Relative type` – shift the directory one level higher in the file system
-- `reparentBy : Path[/Ambiguous]/Relative type → Natural → Path[/Ambiguous]/Relative type` – shift the directory some number of levels higher in the file system
-- `root : Directory/Absolute` – the root directory, the starting point for building absolute paths
-- `route` – find a path from the first path to the second
-  - `Path/Absolute/route : Directory/Absolute → Path/Absolute type → Path/Relative type`
-  - `Path/Relative/route : Directory/Relative → Path/Relative type → Optional (Path/Relative type)`
-- `selectFile : Directory anchor → Text → File anchor`
-- `toText : Format → Path/[Ambiguous/]Any → Text` – serialize the path (formatted for specific systems)
-- `unanchor` – generalize the type, for interfaces
-  - `Path/unanchor : Path anchor type → Path/Any`
-  - `Path/Ambiguous/unanchor : Path/Ambiguous anchor → Path/Ambiguous/Any`
+The “[package.dhall](https://sellout.github.io/dhall-path/package.dhall.html)” modules have high level docs and examples
 
 ## future ideas
 
@@ -85,23 +61,27 @@ These is a rough set of available operations. The actual implementations may be 
 
 This could reduce the scope of some failures. It’s also possible that some systems can’t directly express re-parenting, and they would be able to distinguish that at the type level.
 
-## expectations for consumers
-
-The paths are normalized (but not canonicalized, as we have no IO).
-
 ## internals
 
 Structurally, paths look like
 ```dhall
 λ(ancType : Type) →
 λ(typType : Type) →
-  { parents : ancType, directories : List Text, file : typeType }
+  { --| If the path is relative, this is the number of levels up the
+    --  hierarchy to move before descending into the directories (i.e.,
+    --  “../”).
+    parents : ancType
+  , --| The directory components of the path in reverse order.
+    directories : List Text
+  , --| If the path represents a file, the name of the file.
+    file : typeType
+  }
 ```
 with one very minor variation – `Ambiguous` paths call `file` `component` (because the ambiguity is that we don’t know whether that component represents a directory name or a file name).
 
-The `directories` are stored in reverse order, to make the common operations of cons, tail, fold, etc. a bit more intuitive[^1].  `ancType` is `{}` for absolute paths, `Natural` for relative paths, and `Optional Natural` for un-anchored paths. Similarly, `typType` is `{}` for directories, `Text` for files, and `Optional Text` for un-anchored paths.
+The `directories` are stored in reverse order, to make the common operations of cons, tail, fold, etc. a bit more intuitive[^2].  `ancType` is `{}` for absolute paths, `Natural` for relative paths, and `Optional Natural` for un-anchored paths. Similarly, `typType` is `{}` for directories, `Text` for files, and `Optional Text` for un-anchored paths.
 
-[^1]: **TODO**: Perhaps switch to a non-reverse ordering, since Dhall’s types are structural, the ordering is exposed, even if we generally try to prevent users from seeing it. Keeping it consistent would be good to avoid confusion.
+[^2]: **TODO**: Perhaps switch to a non-reverse ordering, since Dhall’s types are structural, the ordering is exposed, even if we generally try to prevent users from seeing it. Keeping it consistent would be good to avoid confusion.
 
 ## development environment
 
@@ -134,3 +114,5 @@ Being in Dhall, it can’t support parsing strings, so it can never convert `Tex
 It supports a notion of “ambiguous” paths that are not either directories or files. This is due to its need to act as an interface to arbitrary systems.
 
 Since Dhall can’t compare strings, we can’t identify or remove common prefixes. The closest approximation is `route`, which removes a prefix by re-parenting.
+
+This library has no special handling of extensions.

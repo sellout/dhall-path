@@ -1,4 +1,7 @@
 {-|
 The current directory.
 -}
-{ directories = [] : List Text, file = {=}, parents = 0 }
+let Directory/Relative = ./Relative/Type
+
+in    { directories = [] : List Text, file = {=}, parents = 0 }
+    : Directory/Relative

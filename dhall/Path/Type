@@ -1,10 +1,18 @@
+{-|
+The fundamental type representation of a path.
+-}
 let Anc = ./Anc
 
 let Typ = ./Typ
 
 in  λ(anchor : Anc) →
     λ(type : Typ) →
-      { directories : List Text
-      , file : merge { Dir = {}, File = Text } type
-      , parents : merge { Abs = {}, Rel = Natural } anchor
+      { --| If the path is relative, this is the number of levels up the
+        --  hierarchy to move before descending into the directories (i.e.,
+        --  “../”).
+        parents : merge { Abs = {}, Rel = Natural } anchor
+      , --| The directory components of the path in reverse order.
+        directories : List Text
+      , --| If the path represents a file, the name of the file.
+        file : merge { Dir = {}, File = Text } type
       }
