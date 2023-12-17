@@ -1,0 +1,7 @@
+direnv
+garnix
+[Nn]ix
+Pfeil
+ShellCheck
+Dhall
+unary
