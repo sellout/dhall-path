@@ -12,7 +12,6 @@ These is a rough set of available operations. The actual implementations may be 
   - `Directory/Absolute/concat : Directory anchor → Path/Relative type → Optional (Path/Anchored anchor type)`
   - `Directory/Relative/concat : Directory anchor → Path/Relative type → Path/Anchored anchor type`
 - `containing : Path/Ambiguous anchor → Directory anchor` – find the containing directory for an ambiguous path
-  - `Directory/Relative/ascend : Directory/Relative → Directory/Relative`
 - `current : Directory/Relative` – the current directory, the starting point for building relative paths
 - `descendThrough : Directory anchor → List Text → Directory anchor` – move multiple directories deeper in the file system
 - `descendTo : Directory anchor → Text → Directory anchor` – like `descendThrough`, but for a single directory
