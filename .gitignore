@@ -4,4 +4,6 @@
 !/.cache/vale/Vocab/
 /.cache/vale/Vocab/*
 !/.cache/vale/Vocab/dhall-path/
+/.local/state/project-manager/
+/.local/state/nix/profiles/
 /.cache/direnv/
