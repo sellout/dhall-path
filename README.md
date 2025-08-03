@@ -1,6 +1,6 @@
 # Paths (for Dhall)
 
-[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fdhall-path)](https://garnix.io)
+[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fdhall-path)](https://garnix.io/repo/sellout/dhall-path)
 
 Well-typed path manipulation for Dhall
 
