@@ -1,6 +1,11 @@
 /result
 /source
 /.cache/vale/*
+!/.cache/vale/config/
+/.cache/vale/config/*
+!/.cache/vale/config/vocabularies/
+/.cache/vale/config/vocabularies/*
+!/.cache/vale/config/vocabularies/dhall-path/
 !/.cache/vale/Vocab/
 /.cache/vale/Vocab/*
 !/.cache/vale/Vocab/dhall-path/
